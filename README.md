@@ -1,5 +1,6 @@
 # csh.link
-A simple URL shortener for Computer Science House to use. Hosted on https://csh.link.
+A simple URL shortener for Computer Science House to use.
+Hosted on https://csh.link. Work in progress.
 
 ## Building
 csh.link is a Swift project using the Vapor framework. You should be able to
