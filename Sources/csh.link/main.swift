@@ -34,12 +34,11 @@ drop.post { request in
   //     - Error if URL is different
   //   - Duplicate URL
   //     - If code is not provided, just use that.
-  //     - Otherwise, fall through make a new one.
-  if
-    let code = code,
-    let link = try Link.query()
-                       .filter("code", code)
-                       .filter("active", true).first() {
+  //     - Otherwise, fall through and make a new one.
+  if let code = code,
+     let link = try Link.query()
+                        .filter("code", code)
+                        .filter("active", true).first() {
     if url == link.url {
       return try link.makeResponse()
     } else {

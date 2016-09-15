@@ -2,6 +2,12 @@ import Vapor
 import Fluent
 import Foundation
 
+#if os(macOS)
+  typealias RegEx = NSRegularExpression
+#else
+  typealias RegEx = RegularExpression
+#endif
+  
 enum LinkError: Error {
   case noID
 }
@@ -16,7 +22,7 @@ extension URL {
     var string = string
     
     // HACK: Add scheme if none is provided
-    let schemeRegex = try! NSRegularExpression(pattern: "\\w+://")
+    let schemeRegex = try! RegEx(pattern: "\\w+://")
     if schemeRegex.numberOfMatches(in: string,
                                    range: NSRange(location: 0, length: string.characters.count)) == 0 {
       string = "http://\(string)"
