@@ -24,6 +24,7 @@ extension URL {
     // HACK: Add scheme if none is provided
     let schemeRegex = try! RegEx(pattern: "\\w+://", options: [])
     if schemeRegex.numberOfMatches(in: string,
+                                   options: [],
                                    range: NSRange(location: 0, length: string.characters.count)) == 0 {
       string = "http://\(string)"
     }
