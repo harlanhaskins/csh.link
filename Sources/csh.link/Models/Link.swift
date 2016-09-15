@@ -22,7 +22,7 @@ extension URL {
     var string = string
     
     // HACK: Add scheme if none is provided
-    let schemeRegex = try! RegEx(pattern: "\\w+://")
+    let schemeRegex = try! RegEx(pattern: "\\w+://", options: [])
     if schemeRegex.numberOfMatches(in: string,
                                    range: NSRange(location: 0, length: string.characters.count)) == 0 {
       string = "http://\(string)"
