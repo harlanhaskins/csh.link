@@ -1,4 +1,4 @@
-# csh.link
+# csh.link [![Build Status](https://travis-ci.org/harlanhaskins/csh.link.svg?branch=master)](https://travis-ci.org/harlanhaskins/csh.link)
 A simple URL shortener for Computer Science House to use.
 Hosted on https://csh.link. Work in progress.
 
