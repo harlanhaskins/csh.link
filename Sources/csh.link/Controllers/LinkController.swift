@@ -35,12 +35,7 @@ final class LinkController: ResourceRepresentable {
   }
 
   func create(url: URL, creator: CSHAccount, code: String? = nil) throws -> ResponseRepresentable {
-    // Possible states:
-    //   - Duplicate code
-    //     - Error if URL is different
-    //   - Duplicate URL
-    //     - If code is not provided, just use that.
-    //     - Otherwise, fall through and make a new one.
+    // If there is a duplicate code, then give an error if the submitted URL is different.
     if let code = code,
       let link = try Link.query()
         .filter("code", .equals, code)
@@ -51,12 +46,6 @@ final class LinkController: ResourceRepresentable {
         return try Response(status: .badRequest, json: JSON([
           "reason": .string("a link already exists for \(code)")
           ]))
-      }
-    } else if let link = try Link.query()
-      .filter("url", url.absoluteString)
-      .filter("active", true).first() {
-      if code == nil {
-        return try link.makeResponse()
       }
     }
     

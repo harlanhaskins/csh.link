@@ -1,0 +1,16 @@
+#embed("embeds/header")
+#embed("embeds/nav")
+
+<div class='container main'>
+    <div class='col-lg-3'>
+    </div>
+    <div class='col-lg-6'>
+        <ul class="list-group">
+            #loop(links, "link") {
+                <li class="list-group-item">
+                    #(link.code): #(link.url)
+                </li>
+            }
+        </ul>
+    </div>
+</div>

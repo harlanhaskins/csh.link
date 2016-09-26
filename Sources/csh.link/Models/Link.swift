@@ -89,7 +89,7 @@ final class Link: Model {
   
   init(url: URL, code: String? = nil, creator: String? = nil) throws {
     self.url = url
-    self.code = code ?? IDGenerator.encodeID(url.hashValue)
+    self.code = code ?? IDGenerator.encodeID(url.hashValue ^ Date().hashValue)
     self.creator = creator
   }
   
@@ -125,7 +125,7 @@ final class Link: Model {
     try database.create("links") { link in
       link.id()
       link.string("url")
-      link.string("code", length: 255, optional: true)
+      link.string("code")
       link.string("creator", length: 24, optional: true)
       link.bool("active")
     }

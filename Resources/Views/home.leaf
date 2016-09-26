@@ -1,0 +1,28 @@
+#embed("embeds/header")
+
+<title>csh.link</title>
+
+#embed("embeds/nav")
+
+<div class='container main'>
+    <div class='row'>
+        <div class='col-lg-3'>
+        </div>
+        <div class='col-lg-6'>
+            <div class='panel panel-default'>
+                <div class='panel-body'>
+                    <input type='text' name='url' class='form-control' placeholder='URL'>
+                    <input type='text' name='custom-code' class='form-control' placeholder='Code (optional)'>
+                    <div class='row'>
+                        <div class='col-md-4'>
+                            <button class='btn btn-default form-submit' onclick='createURL()' type='button'>Shorten</button>
+                        </div>
+                        <div id='message' class='col-md-6 inset'>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

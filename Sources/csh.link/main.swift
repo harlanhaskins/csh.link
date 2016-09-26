@@ -51,6 +51,12 @@ func requireAuthorization(request: Request, handler: (Request, CSHAccount) throw
     return try handler(request, user)
 }
 
+func badRequest(reason: String) throws -> Response {
+    return try Response(status: .badRequest, json: JSON([
+        "reason": .string(reason)
+    ]))
+}
+
 drop.group(authMiddleware) { group in
     
     group.get("csh", "consumer") { request in
@@ -73,21 +79,32 @@ drop.group(authMiddleware) { group in
                 guard let json = request.json else {
                     throw RequestError.noData
                 }
+                
                 let urlString: String = try json.extract("url")
                 let code: String? = try json.extract("code")
                 let url = try URL(validating: urlString)
                 return try linkController.create(url: url, creator: user, code: code)
             }
         } catch {
-            return try Response(status: .badRequest, json: JSON([
-                "reason": .string("Invalid request parameters: \(error).")
+            return try badRequest(reason: "You must provide a valid URL and, optionally, a code.")
+        }
+    }
+    
+    group.get("links") { request in
+        return try requireAuthorization(request: request) { request, user in
+            let links = try Link.query().filter("creator", .equals, user.uuid)
+            return try drop.view.make("links", Node([
+                "user": user.makeNode(),
+                "links": links.all().makeNode()
             ]))
         }
     }
     
     group.get { request in
-        return requireAuthorization(request: request) { request, user in
-            return Response(body: "logged in as \(user.commonName)")
+        return try requireAuthorization(request: request) { request, user in
+            return try drop.view.make("home", Node([
+                "user": user.makeNode()
+            ]))
         }
     }
 }
