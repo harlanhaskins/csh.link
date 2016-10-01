@@ -1,10 +1,8 @@
 import Vapor
-import Auth
 import HTTP
-import VaporSQLite
 import TurnstileCSH
-import TurnstileCrypto
 import Foundation
+import VaporSQLite
 
 enum RequestError: Error {
     case noData
@@ -16,39 +14,32 @@ let drop = Droplet(preparations: [Link.self],
 
 let clientID = drop.config["app", "csh", "client-id"]?.string ?? ""
 let clientSecret = drop.config["app", "csh", "client-secret"]?.string ?? ""
-let cshRealm = CSH(clientID: clientID, clientSecret: clientSecret)
 
 let linkController = LinkController(droplet: drop)
 drop.resource("links", linkController)
 
-let authMiddleware = AuthMiddleware(user: CSHAccount.self, realm: cshRealm)
+let cshMiddleware = CSHMiddleware(droplet: drop,
+                                 clientID: clientID,
+                                  clientSecret: clientSecret)
 
 drop.get(String.self) { request, code in
-  guard let link = try Link.query().filter("code", code).first() else {
-    return try Response(status: .notFound, json: JSON([
-        "reason": .string("Could not find a link for \(code). " +
-                          "Check the code and try again.")
-    ]))
-  }
-  return try linkController.show(request: request, item: link)
-}
-
-drop.get("login") { request in
-    let state = URandom().secureToken
-    let url = cshRealm.getLoginLink(redirectURL: "http://localhost:8080/csh/consumer", state: state)
-    let response = Response(redirect: url.absoluteString)
-    response.cookies["csh-link-auth-state"] = state
-    return response
-}
-
-func requireAuthorization(request: Request, handler: (Request, CSHAccount) throws -> ResponseRepresentable) rethrows -> ResponseRepresentable {
-    let user: CSHAccount
-    do {
-        user = try request.auth.user() as! CSHAccount
-    } catch {
-        return Response(redirect: "http://localhost:8080/login")
+    guard let link = try Link.forCode(code) else {
+        return try Response(status: .notFound, json: JSON([
+            "reason": .string("Could not find a link for \(code). " +
+                "Check the code and try again.")
+        ]))
     }
-    return try handler(request, user)
+    return try linkController.show(request: request, item: link)
+}
+
+drop.get(String.self, "q") { request, code in
+    guard let link = try Link.forCode(code) else {
+        return try Response(status: .notFound, json: JSON([
+            "reason": .string("Could not find a link for \(code). " +
+                "Check the code and try again.")
+        ]))
+    }
+    return Response(body: link.url.absoluteString)
 }
 
 func badRequest(reason: String) throws -> Response {
@@ -57,55 +48,54 @@ func badRequest(reason: String) throws -> Response {
     ]))
 }
 
-drop.group(authMiddleware) { group in
-    
-    group.get("csh", "consumer") { request in
-        let url = request.uri.description
-        guard let state = request.cookies["csh-link-auth-state"] else {
-            throw RequestError.csrfViolation
+drop.group(cshMiddleware.authMiddleware, cshMiddleware) { group in
+    group.delete(String.self) { request, code in
+        guard let link = try Link.forCode(code) else {
+            return try badRequest(reason: "no url found for '\(code)'")
         }
-        let cshAccount =
-            try cshRealm.authenticate(authorizationCodeCallbackURL: url,
-                                      state: state) as! CSHAccount
-        
-        try request.auth.login(cshAccount)
-        
-        return Response(redirect: "http://localhost:8080")
+        return try linkController.destroy(request: request, item: link)
+    }
+    
+    group.post(String.self) { request, code in
+        guard let link = try Link.forCode(code) else {
+            return try badRequest(reason: "no url found for '\(code)'")
+        }
+        return try linkController.update(request: request, item: link)
     }
     
     group.post { request in
         do {
-            return try requireAuthorization(request: request) { request, user  in
-                guard let json = request.json else {
-                    throw RequestError.noData
-                }
-                
-                let urlString: String = try json.extract("url")
-                let code: String? = try json.extract("code")
-                let url = try URL(validating: urlString)
-                return try linkController.create(url: url, creator: user, code: code)
+            guard let json = request.json else {
+                throw RequestError.noData
             }
+            
+            let user = try request.auth.user() as! CSHAccount
+            let urlString: String = try json.extract("url")
+            let code: String? = try json.extract("code")
+            let url = try URL(validating: urlString)
+            return try linkController.create(url: url, creator: user, code: code)
         } catch {
             return try badRequest(reason: "You must provide a valid URL and, optionally, a code.")
         }
     }
     
     group.get("links") { request in
-        return try requireAuthorization(request: request) { request, user in
-            let links = try Link.query().filter("creator", .equals, user.uuid)
-            return try drop.view.make("links", Node([
-                "user": user.makeNode(),
-                "links": links.all().makeNode()
-            ]))
-        }
+        let user = try request.auth.user() as! CSHAccount
+        let links = try Link.query()
+                            .filter("creator", .equals, user.uuid)
+                            .filter("active", true)
+                            .all()
+        return try drop.view.make("links", Node([
+            "user": user.makeNode(),
+            "links": links.makeNode()
+        ]))
     }
     
     group.get { request in
-        return try requireAuthorization(request: request) { request, user in
-            return try drop.view.make("home", Node([
-                "user": user.makeNode()
-            ]))
-        }
+        let user = try request.auth.user() as! CSHAccount
+        return try drop.view.make("home", Node([
+            "user": user.makeNode()
+        ]))
     }
 }
 

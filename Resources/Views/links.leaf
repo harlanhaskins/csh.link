@@ -5,12 +5,17 @@
     <div class='col-lg-3'>
     </div>
     <div class='col-lg-6'>
-        <ul class="list-group">
-            #loop(links, "link") {
-                <li class="list-group-item">
-                    #(link.code): #(link.url)
-                </li>
-            }
-        </ul>
+        #loop(links, "link") {
+            <div class="panel panel-default" id='link-entry-#(link.code)'>
+                <div class="panel-heading">
+                    <h3 class="panel-title">https://csh.link/#(link.code)</h3>
+                </div>
+                <div class="panel-body">
+                    <input type='textarea' id='url-input-#(link.code)' class='form-control' value='#(link.url)' />
+                    <button type='button' class='btn btn-default form-submit' onclick='updateLink("#(link.code)")'>Update</button>
+                    <button type='button' class='btn btn-danger form-submit' onclick='deleteLink("#(link.code)")'>Delete</button>
+                </div>
+            </div>
+        }
     </div>
 </div>
