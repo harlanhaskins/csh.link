@@ -15,7 +15,7 @@ func badRequest(reason: String) -> Response {
     ]))
 }
 
-func runServer() {
+func runServer() throws {
     
     let drop = Droplet(preparations: [Link.self],
                        providers: [VaporSQLite.Provider.self])
@@ -96,7 +96,7 @@ func runServer() {
         }
     }
     
-    let port = drop.config["servers", "default", "port"]?.int ?? 80
+    _ = drop.config["servers", "default", "port"]?.int ?? 80
     drop.run()
 }
 

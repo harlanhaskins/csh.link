@@ -38,10 +38,10 @@ enum CSHMiddlewareError: Error, CustomStringConvertible {
 struct CSHMiddleware: Middleware {
     let authMiddleware: AuthMiddleware<CSHAccount>
     init(droplet: Droplet) throws {
-        guard let clientID = drop.config["app", "csh", "client-id"]?.string else {
+        guard let clientID = droplet.config["app", "csh", "client-id"]?.string else {
             throw CSHMiddlewareError.noClientID
         }
-        guard let clientSecret = drop.config["app", "csh", "client-secret"]?.string else {
+        guard let clientSecret = droplet.config["app", "csh", "client-secret"]?.string else {
             throw CSHMiddlewareError.noClientSecret
         }
         let cshRealm = CSH(clientID: clientID, clientSecret: clientSecret)
