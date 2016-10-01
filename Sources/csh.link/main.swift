@@ -12,15 +12,10 @@ enum RequestError: Error {
 let drop = Droplet(preparations: [Link.self],
                    providers: [VaporSQLite.Provider.self])
 
-let clientID = drop.config["app", "csh", "client-id"]?.string ?? ""
-let clientSecret = drop.config["app", "csh", "client-secret"]?.string ?? ""
-
 let linkController = LinkController(droplet: drop)
 drop.resource("links", linkController)
 
-let cshMiddleware = CSHMiddleware(droplet: drop,
-                                 clientID: clientID,
-                                  clientSecret: clientSecret)
+let cshMiddleware = try CSHMiddleware(droplet: drop)
 
 drop.get(String.self) { request, code in
     guard let link = try Link.forCode(code) else {
@@ -42,8 +37,8 @@ drop.get(String.self, "q") { request, code in
     return Response(body: link.url.absoluteString)
 }
 
-func badRequest(reason: String) throws -> Response {
-    return try Response(status: .badRequest, json: JSON([
+func badRequest(reason: String) -> Response {
+    return try! Response(status: .badRequest, json: JSON([
         "reason": .string(reason)
     ]))
 }
@@ -51,14 +46,14 @@ func badRequest(reason: String) throws -> Response {
 drop.group(cshMiddleware.authMiddleware, cshMiddleware) { group in
     group.delete(String.self) { request, code in
         guard let link = try Link.forCode(code) else {
-            return try badRequest(reason: "no url found for '\(code)'")
+            return badRequest(reason: "no url found for '\(code)'")
         }
         return try linkController.destroy(request: request, item: link)
     }
     
     group.post(String.self) { request, code in
         guard let link = try Link.forCode(code) else {
-            return try badRequest(reason: "no url found for '\(code)'")
+            return badRequest(reason: "no url found for '\(code)'")
         }
         return try linkController.update(request: request, item: link)
     }
@@ -75,7 +70,7 @@ drop.group(cshMiddleware.authMiddleware, cshMiddleware) { group in
             let url = try URL(validating: urlString)
             return try linkController.create(url: url, creator: user, code: code)
         } catch {
-            return try badRequest(reason: "You must provide a valid URL and, optionally, a code.")
+            return badRequest(reason: "You must provide a valid URL and, optionally, a code.")
         }
     }
     

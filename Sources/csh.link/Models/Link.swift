@@ -80,7 +80,7 @@ extension URL {
     }
 }
 
-final class Link: Model {
+struct Link: Model {
     var id: Node?
     var url: URL
     var code: String

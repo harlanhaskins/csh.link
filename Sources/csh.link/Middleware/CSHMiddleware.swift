@@ -6,9 +6,44 @@ import HTTP
 import URI
 import Foundation
 
+enum CSHMiddlewareError: Error, CustomStringConvertible {
+    case noClientID
+    case noClientSecret
+    
+    var example: String {
+        return [
+            "{",
+            "  \"csh\": {",
+            "    \"client-id\": \"your-client-id\",",
+            "    \"client-secret: \"your-client-secret\"",
+            "  }",
+            "}"
+        ].joined(separator: "\n")
+    }
+    
+    var description: String {
+        var s = "Invalid CSH config file. You must have a "
+        switch self {
+        case .noClientID:
+            s += "'client-id'"
+        case .noClientSecret:
+            s += "'client-secret'"
+        }
+        s += " key in your Vapor config, like so: "
+        s += "\n" + example
+        return s
+    }
+}
+
 struct CSHMiddleware: Middleware {
     let authMiddleware: AuthMiddleware<CSHAccount>
-    init(droplet: Droplet, clientID: String, clientSecret: String) {
+    init(droplet: Droplet) throws {
+        guard let clientID = drop.config["app", "csh", "client-id"]?.string else {
+            throw CSHMiddlewareError.noClientID
+        }
+        guard let clientSecret = drop.config["app", "csh", "client-secret"]?.string else {
+            throw CSHMiddlewareError.noClientSecret
+        }
         let cshRealm = CSH(clientID: clientID, clientSecret: clientSecret)
         droplet.get("csh", "login") { request in
             let state = URandom().secureToken
