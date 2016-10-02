@@ -22,7 +22,25 @@ final class LinkController: ResourceRepresentable {
         return try link.makeResponse()
     }
     
+    func extractAddress(request: Request) -> String? {
+        guard let peer =  request.peerAddress?.address() else {
+            return nil
+        }
+        let components = peer.components(separatedBy: ":")
+        if components.count > 1 {
+            return components[0]
+        }
+        return peer
+    }
+    
     func show(request: Request, item link: Link) throws -> ResponseRepresentable {
+        do {
+            var visit = try Visit(parent: link, visitorAddress: extractAddress(request: request))
+            try visit.save()
+            print(visit)
+        } catch {
+            drop.log.error("failed to register visit: \(error)")
+        }
         return Response(redirect: link.url.absoluteString)
     }
     
@@ -68,7 +86,7 @@ final class LinkController: ResourceRepresentable {
             } else {
                 return try Response(status: .badRequest, json: JSON([
                     "reason": .string("a link already exists for \(code)")
-                    ]))
+                ]))
             }
         }
         

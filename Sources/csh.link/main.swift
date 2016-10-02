@@ -3,6 +3,7 @@ import HTTP
 import TurnstileCSH
 import Foundation
 import VaporSQLite
+import Leaf
 
 enum RequestError: Error {
     case noData
@@ -16,10 +17,14 @@ func badRequest(reason: String) -> Response {
 }
 
 func runServer() throws {
+    let renderer = LeafRenderer(viewsDir: "Resources/Views")
+    renderer.stem.register(FormatDate())
+    renderer.stem.register(Empty())
     
-    let drop = Droplet(preparations: [Link.self],
+    let drop = Droplet(view: renderer,
+                       preparations: [Link.self, Visit.self],
                        providers: [VaporSQLite.Provider.self])
-    
+
     let linkController = LinkController(droplet: drop)
     drop.resource("links", linkController)
     
@@ -76,23 +81,23 @@ func runServer() throws {
             }
         }
         
-        group.get("links") { request in
+        group.get { request in
             let user = try request.auth.user() as! CSHAccount
             let links = try Link.query()
                 .filter("creator", .equals, user.uuid)
                 .filter("active", true)
                 .all()
-            return try drop.view.make("links", Node([
+            var linkNodes = [Node]()
+            for link in links {
+                var node = try link.makeNode()
+                let visits = try link.visits().all()
+                node["visits"] = .number(Node.Number.int(visits.count))
+                linkNodes.append(node)
+            }
+            return try drop.view.make("home", [
                 "user": user.makeNode(),
-                "links": links.makeNode()
-                ]))
-        }
-        
-        group.get { request in
-            let user = try request.auth.user() as! CSHAccount
-            return try drop.view.make("home", Node([
-                "user": user.makeNode()
-                ]))
+                "links": linkNodes.makeNode()
+            ])
         }
     }
     
@@ -107,3 +112,5 @@ func main() {
         print("Error: \(error)")
     }
 }
+
+main()

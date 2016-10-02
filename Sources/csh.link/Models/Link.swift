@@ -1,97 +1,21 @@
 import Vapor
 import Fluent
-import Auth
-import TurnstileCSH
 import Foundation
-
-enum UserError: Error {
-    case registrationNotAllowed
-}
-
-extension CSHAccount: User {
-    public var id: Node? {
-        get {
-            return .string(uuid)
-        }
-        set(newValue) {
-            /* do nothing */
-        }
-    }
-    
-    public init(node: Node, in context: Context) throws {
-        uuid = try node.extract("uuid")
-        username = try node.extract("username")
-        commonName = try node.extract("commonName")
-    }
-    
-    public static func revert(_ database: Database) throws {
-        return
-    }
-    
-    public static func prepare(_ database: Database) throws {
-        return
-    }
-    
-    public static func register(credentials: Credentials) throws -> User {
-        throw UserError.registrationNotAllowed
-    }
-    
-    public func makeNode(context: Context) throws -> Node {
-        return Node([
-            "uuid": .string(uuid),
-            "username": .string(username),
-            "commonName": .string(commonName)
-            ])
-    }
-}
-
-#if os(macOS)
-    typealias RegularExpression = NSRegularExpression
-#endif
-
-enum LinkError: Error {
-    case noID
-}
-
-enum URLError: Error {
-    case notAURL
-    case noHost
-}
-
-extension URL {
-    init(validating string: String) throws {
-        var string = string
-        
-        // HACK: Add scheme if none is provided
-        let schemeRegex = try! RegularExpression(pattern: "\\w+://", options: [])
-        if schemeRegex.numberOfMatches(in: string,
-                                       options: [],
-                                       range: NSRange(location: 0, length: string.characters.count)) == 0 {
-            string = "http://\(string)"
-        }
-        
-        guard let url = URL(string: string) else {
-            throw URLError.notAURL
-        }
-        guard url.host != nil else {
-            throw URLError.noHost
-        }
-        self = url
-    }
-}
 
 struct Link: Model {
     var id: Node?
     var url: URL
     var code: String
+    var created: Date
     var exists: Bool = false
     var active: Bool = true
     var creator: String? = nil
     
-    init(url: URL, code: String? = nil, creator: String? = nil) throws {
+    init(url: URL, code: String? = nil, creator: String? = nil, created: Date? = nil) throws {
         self.url = url
         self.code = code ?? IDGenerator.encodeID(url.hashValue ^ Date().hashValue)
         self.creator = creator
+        self.created = created ?? Date()
     }
     
     init(node: Node, in context: Context) throws {
@@ -101,13 +25,17 @@ struct Link: Model {
         code = try node.extract("code")
         creator = try node.extract("creator")
         active = try node.extract("active")
+        created = try node.extract("created_at") { (timestamp: TimeInterval) -> Date in
+            return Date(timeIntervalSince1970: timestamp)
+        }
     }
     
     func makeNode(context: Context) -> Node {
         var data: Node = [
             "url": .string(url.absoluteString),
             "active": .bool(active),
-            "code": .string(code)
+            "code": .string(code),
+            "created_at": .number(Node.Number(created.timeIntervalSince1970))
         ]
         if let id = id {
             data["id"] = id
@@ -136,10 +64,15 @@ struct Link: Model {
             link.string("code")
             link.string("creator", length: 24, optional: false)
             link.bool("active")
+            link.double("created_at")
         }
     }
     
     static func revert(_ database: Database) throws {
         try database.delete("links")
+    }
+    
+    func visits() -> Children<Visit> {
+        return children()
     }
 }

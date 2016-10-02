@@ -11,7 +11,17 @@ function createURL() {
         data: JSON.stringify(data),
         contentType: 'application/json',
      }).done(function(data) {
-         $('#message').html("Success! Your url is\nhttps://csh.link/" + data.code);
+         var link = "https://csh.link/" + data.code;
+         var input = $("<input />").attr({
+                        type: "textarea",
+                        class: "form-control",
+                        value: link
+                     });
+         var message = $('#message');
+         message.html("Success! Your url is\n");
+         message.append(input);
+         input.focus();
+         input.select();
          console.log(data);
      }).fail(function(error) {
          var reason = extractReason(error);

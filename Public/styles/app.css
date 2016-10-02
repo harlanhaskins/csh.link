@@ -7,8 +7,12 @@
     margin-right: 15px;
 }
 
-#message {
-    font-size: 16pt;
+.link-action {
+    margin-right: 10px;
+}
+
+.message {
+    font-size: 12pt;
 }
 
 .inset {
