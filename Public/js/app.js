@@ -1,6 +1,7 @@
 function renderLink(link, animated) {
     var source = $('#link-template').html();
     var template = Handlebars.compile(source);
+    link.created_at = moment.unix(link.created_at).format('MMMM D, YYYY');
     var html = template({link: link});
     if (animated) {
         $(html).addClass('new-item').prependTo('#link-container');
@@ -22,7 +23,7 @@ function createURL() {
         contentType: 'application/json',
      }).done(function(link) {
          renderLink(link, true);
-         $("#short-link-" + link.code).select();
+         $("#short-link-" + link.code).focus().select();
      }).fail(function(error) {
          var reason = extractReason(error);
          console.log(reason);
