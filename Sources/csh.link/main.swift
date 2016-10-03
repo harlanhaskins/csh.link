@@ -17,12 +17,7 @@ func badRequest(reason: String) -> Response {
 }
 
 func runServer() throws {
-    let renderer = LeafRenderer(viewsDir: "Resources/Views")
-    renderer.stem.register(FormatDate())
-    renderer.stem.register(Empty())
-    
-    let drop = Droplet(view: renderer,
-                       preparations: [Link.self, Visit.self],
+    let drop = Droplet(preparations: [Link.self, Visit.self],
                        providers: [VaporSQLite.Provider.self])
 
     let linkController = LinkController(droplet: drop)
