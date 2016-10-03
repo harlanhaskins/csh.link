@@ -1,7 +1,17 @@
+function renderLink(link, animated) {
+    var source = $('#link-template').html();
+    var template = Handlebars.compile(source);
+    var html = template({link: link});
+    if (animated) {
+        $(html).addClass('new-item').prependTo('#link-container');
+    } else {
+        $(html).prependTo('#link-container');
+    }
+}
+
 function createURL() {
     var url = $('input[name=url]').val();
     var code = $('input[name=custom-code]').val();
-
     var data = {url: url};
     if (code) {
         data.code = code;
@@ -10,23 +20,13 @@ function createURL() {
         url: '/',
         data: JSON.stringify(data),
         contentType: 'application/json',
-     }).done(function(data) {
-         var link = "https://csh.link/" + data.code;
-         var input = $("<input />").attr({
-                        type: "textarea",
-                        class: "form-control",
-                        value: link
-                     });
-         var message = $('#message');
-         message.html("Success! Your url is\n");
-         message.append(input);
-         input.focus();
-         input.select();
-         console.log(data);
+     }).done(function(link) {
+         renderLink(link, true);
+         $("#short-link-" + link.code).select();
      }).fail(function(error) {
          var reason = extractReason(error);
-         $('#message').html("Error: " + reason);
          console.log(reason);
+         $('#message').html(reason);
      });
 }
 
@@ -35,7 +35,10 @@ function deleteLink(code) {
         url: '/' + code,
         type: 'DELETE'
     }).done(function(data) {
-        $('#link-entry-' + code).remove();
+        $('#link-entry-' + code).addClass('removed');
+        setTimeout(function() {
+            $('#link-entry-' + code).remove();
+        }, 400);
     }).fail(function(error) {
         console.log(extractReason(error));
     })

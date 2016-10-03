@@ -37,7 +37,6 @@ final class LinkController: ResourceRepresentable {
         do {
             var visit = try Visit(parent: link, visitorAddress: extractAddress(request: request))
             try visit.save()
-            print(visit)
         } catch {
             drop.log.error("failed to register visit: \(error)")
         }

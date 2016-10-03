@@ -51,7 +51,6 @@ struct CSHMiddleware: Middleware {
                 .deletingLastPathComponent()
                 .appendingPathComponent("consumer")
                 .description
-            
             let url = cshRealm.getLoginLink(redirectURL: redirect,
                                             state: state)
             let response = Response(redirect: url.absoluteString)

@@ -47,7 +47,9 @@ func runServer() throws {
                     "Check the code and try again.")
             ]))
         }
-        return Response(body: link.url.absoluteString)
+        return try drop.view.make("query", [
+            "link": link.makeNode()
+        ])
     }
     
     drop.group(cshMiddleware.authMiddleware, cshMiddleware) { group in
@@ -94,9 +96,10 @@ func runServer() throws {
                 node["visits"] = .number(Node.Number.int(visits.count))
                 linkNodes.append(node)
             }
+            let linkJSON = try JSON(linkNodes.makeNode()).serialize(prettyPrint: false)
             return try drop.view.make("home", [
                 "user": user.makeNode(),
-                "links": linkNodes.makeNode()
+                "linkJSON": .bytes(linkJSON)
             ])
         }
     }

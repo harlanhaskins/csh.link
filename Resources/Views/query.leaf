@@ -1,0 +1,17 @@
+#embed("embeds/header")
+
+<title>csh.link</title>
+
+#embed("embeds/nav")
+
+<div class='container main'>
+    <div class='col-lg-3'>
+    </div>
+    <div class='col-lg-6'>
+        <div class='panel panel-default'>
+            <div class='message text-center'>
+                <a href='/#(link.code)'>csh.link/#(link.code)</a> redirects to <a href='#(link.url)'>#(link.url)</a>
+            </div>
+        </div>
+    </div>
+</div>

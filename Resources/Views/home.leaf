@@ -12,56 +12,57 @@
             <div class='panel panel-default'>
                 <div class='panel-body'>
                     <form action='javascript:void(0);' onSubmit='createURL()'>
-                    <input type='text' name='url' id='url-input' class='form-control' placeholder='URL'>
-                    <input type='text' name='custom-code' class='form-control' placeholder='Code (optional)'>
-                    <div class='row'>
-                        <div class='col-md-4'>
-                            <button type='submit' class='btn btn-default form-submit' onclick='createURL()'>Shorten</button>
+                        <div class="input-group">
+                            <input type='text' name='url' id='url-input' class='form-control' placeholder='URL'>
+                            <span class="input-group-btn">
+                                <button type='submit' class='btn btn-default'>Shorten</button>
+                            </span>
                         </div>
-                        <div id='message' class='col-md-6 inset message'>
-
+                        <input type='text' name='custom-code' class='form-control' placeholder='Custom Short Code (optional)'>
+                        <div class='row'>
+                            <div class='col-md-4'>
+                            </div>
                         </div>
+                    </form>
+                    <div id='message'>
                     </div>
-                </form>
                 </div>
             </div>
         </div>
     </div>
-    #empty(links) {} ##else() {
-        <div class='row'>
+    <div id='link-container' class='slide-fade'>
+    </div>
+    <script id='link-template' type='x-handlebars-template'>
+        <div class='row' id='link-entry-{{link.code}}'>
             <div class='col-lg-3'>
             </div>
             <div class='col-lg-6'>
-                <h4>Your Links</h4>
-            </div>
-        </div>
-    }
-    #loop(links, "link") {
-        <div class='row'>
-            <div class='col-lg-3'>
-            </div>
-            <div class='col-lg-6'>
-                <div class='panel panel-default' id='link-entry-#(link.code)'>
+                <div class='panel panel-default'>
                     <div class='panel-heading'>
-                        <div class='message'>
-                            <a href='/#(link.code)'>https://csh.link/#(link.code)</a>
-                        </div>
+                        <input type='textarea' id='short-link-{{link.code}}' class='form-control' readonly='readonly' value='https://csh.link/{{link.code}}' />
                     </div>
                     <div class='panel-body'>
-                        <input type='textarea' id='url-input-#(link.code)' class='form-control' value='#(link.url)' />
-                        <br />
-                        <button type='button' class='btn btn-default link-action' onclick='updateLink("#(link.code)")'>Update</button>
-                        <button type='button' class='btn btn-danger link-action' onclick='deleteLink("#(link.code)")'>Delete</button>
+                        <div class='input-group'>
+                            <input type='textarea' id='url-input-{{link.code}}' class='form-control' value='{{link.url}}' />
+                            <span class="input-group-btn">
+                                <button type='button' class='btn btn-default' onclick='updateLink("{{link.code}}")'>Update</button>
+                                <button type='button' class='btn btn-danger' onclick='deleteLink("{{link.code}}")'>Delete</button>
+                            </span>
+                        </div>
                     </div>
                     <div class='panel-footer'>
-                        Created #date(link.created_at) • Visits: #(link.visits)
+                        Created {{link.created_at}} • Visits: {{link.visits}}
                     </div>
                 </div>
             </div>
         </div>
-    }
+    </script>
 </div>
 
 <script type='text/javascript'>
-    $('#()url-input').focus();
+var links = #(linkJSON);
+links.forEach(function(link) {
+    renderLink(link, false);
+});
+$('#()url-input').focus();
 </script>
