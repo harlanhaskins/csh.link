@@ -42,8 +42,15 @@ func runServer() throws {
                     "Check the code and try again.")
             ]))
         }
+        let visits: [Node] = try link.visits().all().map { visit in
+            return [
+                "timestamp": .number(Node.Number(visit.timestamp.timeIntervalSince1970)),
+            ]
+        }
+        let visitsJSON = try JSON(visits.makeNode()).serialize(prettyPrint: true)
         return try drop.view.make("query", [
-            "link": link.makeNode()
+            "link": link.makeNode(),
+            "visits": .bytes(visitsJSON)
         ])
     }
     
