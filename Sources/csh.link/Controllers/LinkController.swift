@@ -89,6 +89,12 @@ final class LinkController: ResourceRepresentable {
             }
         }
         
+        if let code = code {
+            guard code.isValidShortCode else {
+                throw LinkError.invalidShortCode
+            }
+        }
+        
         var link = try Link(url: url, code: code, creator: creator.uuid)
         try link.save()
         
@@ -103,5 +109,17 @@ final class LinkController: ResourceRepresentable {
             replace: update,
             destroy: destroy
         )
+    }
+}
+
+extension String {
+    var isValidShortCode: Bool {
+        guard self.count <= 128 else { return false }
+        var validChars = CharacterSet.alphanumerics
+        validChars.insert(charactersIn: "_-")
+        for char in unicodeScalars where !validChars.contains(char) {
+            return false
+        }
+        return true
     }
 }

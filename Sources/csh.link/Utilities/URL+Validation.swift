@@ -4,10 +4,6 @@ import Foundation
     typealias RegularExpression = NSRegularExpression
 #endif
 
-enum LinkError: Error {
-    case noID
-}
-
 enum URLError: Error {
     case notAURL
     case noHost

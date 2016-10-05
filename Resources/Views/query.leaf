@@ -4,7 +4,7 @@
 
 #embed("embeds/nav")
 
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js" integrity="sha256-RtrB/Bgt7EpDgAWIsLodnrtWCCcUCYtZOnuR6bxpSiM=" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.3.0/Chart.min.js" integrity="sha256-w8BXa9KXx+nmhO9N4hupvlLy+cAtqEarnB40DVJx2xA=" crossorigin="anonymous"></script>
 
 <div class='container main'>
     <div class='col-lg-3'>
@@ -23,25 +23,5 @@
 
 <script>
 var visits = #(visits);
-var ctx = $('#()visit-chart');
-var labels = [];
-var numbers = [];
-visits.forEach(function (visit) {
-    var date = moment.unix(visit.timestamp).format('DD MMMM, YYYY');
-    if (labels.length == 0 || labels[labels.length - 1] != date) {
-        labels.push(date);
-        numbers.push(1);
-    } else {
-        numbers[numbers.length - 1]++;
-    }
-});
-var chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [{
-            data: numbers
-        }]
-    }
-});
+displayVisits(visits);
 </script>

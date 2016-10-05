@@ -2,6 +2,11 @@ import Vapor
 import Fluent
 import Foundation
 
+enum LinkError: Error {
+    case noID
+    case invalidShortCode
+}
+
 struct Link: Model {
     var id: Node?
     var url: URL

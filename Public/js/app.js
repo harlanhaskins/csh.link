@@ -4,7 +4,11 @@ function renderLink(link, animated) {
     link.created_at = moment.unix(link.created_at).format('MMMM D, YYYY');
     var html = template({link: link});
     if (animated) {
-        $(html).addClass('new-item').prependTo('#link-container');
+        $(html).prependTo('#link-container')
+               .css("display", "none")
+               .slideDown({
+                   easing: 'easeOutCubic'
+               });
     } else {
         $(html).prependTo('#link-container');
     }
@@ -21,14 +25,17 @@ function createURL() {
         url: '/',
         data: JSON.stringify(data),
         contentType: 'application/json',
-     }).done(function(link) {
-         renderLink(link, true);
-         $("#short-link-" + link.code).focus().select();
-     }).fail(function(error) {
-         var reason = extractReason(error);
-         console.log(reason);
-         $('#message').html(reason);
-     });
+    }).done(function(link) {
+        link.visits = 0; // Hack.
+        $('input[name=url]').val('');
+        $('input[name=custom-code]').val('');
+        renderLink(link, true);
+        $("#short-link-" + link.code).focus().select();
+    }).fail(function(error) {
+        var reason = extractReason(error);
+        console.log(reason);
+        $('#message').html(reason);
+    });
 }
 
 function deleteLink(code) {
@@ -36,10 +43,11 @@ function deleteLink(code) {
         url: '/' + code,
         type: 'DELETE'
     }).done(function(data) {
-        $('#link-entry-' + code).addClass('removed');
-        setTimeout(function() {
-            $('#link-entry-' + code).remove();
-        }, 400);
+        $('#link-entry-' + code).slideUp({
+            easing: 'easeOutCubic'
+        }).done(function (elem) {
+            elem.remove();
+        });
     }).fail(function(error) {
         console.log(extractReason(error));
     })
@@ -64,4 +72,48 @@ function extractReason(error) {
         return json.reason;
     }
     return error.responseText;
+}
+
+function displayVisits(visits) {
+    var ctx = $('#visit-chart').get(0).getContext('2d');
+    var labels = [];
+    var numbers = [];
+    visits.forEach(function (visit) {
+        var date = moment.unix(visit.timestamp).format('MMM DD, YYYY');
+        if (labels.length == 0 || labels[labels.length - 1] != date) {
+            labels.push(date);
+            numbers.push(1);
+        } else {
+            numbers[numbers.length - 1]++;
+        }
+    });
+    var chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: numbers,
+                fill: false,
+                borderColor: "#911568"
+            }]
+        },
+        options: {
+            scales: {
+                xAxes: [{
+                    scaleLabel: {
+                        display: true
+                    }
+                }],
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        callback: function (i) { return i % 1 == 0 ? i : undefined; }
+                    }
+                }]
+            },
+            legend: {
+                display: false
+            },
+        }
+    });
 }

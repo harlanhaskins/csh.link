@@ -80,6 +80,8 @@ func runServer() throws {
                 let code: String? = try json.extract("code")
                 let url = try URL(validating: urlString)
                 return try linkController.create(url: url, creator: user, code: code)
+            } catch LinkError.invalidShortCode {
+                return badRequest(reason: "Custom short codes can only contain up to 128 alphanumeric characters, underscores, or dashes.")
             } catch {
                 return badRequest(reason: "You must provide a valid URL and, optionally, a code.")
             }
