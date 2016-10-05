@@ -48,9 +48,9 @@ func runServer() throws {
                 "timestamp": .number(Node.Number(visit.timestamp.timeIntervalSince1970)),
             ]
         }
-        return try Response(body: JSON([
+        return try JSON([
             "visits": visits.makeNode()
-        ]))
+        ]).makeResponse()
     }
     
     drop.group(cshMiddleware.authMiddleware, cshMiddleware) { group in

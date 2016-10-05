@@ -22,6 +22,5 @@
 </div>
 
 <script>
-var visits = #(visits);
-displayVisits(visits);
+loadVisits("#(link.code)");
 </script>

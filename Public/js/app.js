@@ -76,6 +76,15 @@ function extractReason(error) {
     return error.responseText;
 }
 
+function loadVisits(code) {
+    $.ajax({
+        url: '/' + code + "/visits",
+        type: 'GET'
+    }).done(function(response) {
+        displayVisits(response.visits);
+    });
+}
+
 function displayVisits(visits) {
     var ctx = $('#visit-chart').get(0).getContext('2d');
     var labels = [];
