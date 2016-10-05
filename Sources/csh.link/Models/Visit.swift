@@ -32,11 +32,9 @@ struct Visit: Model {
     
     func makeNode(context: Context) throws -> Node {
         var data: Node = [
+            "id": id ?? .null,
             "visited_at": .number(Node.Number(timestamp.timeIntervalSince1970))
         ]
-        if let id = id {
-            data["id"] = id
-        }
         if let linkId = linkId {
             data["link_id"] = linkId
         }

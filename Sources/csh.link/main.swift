@@ -2,7 +2,8 @@ import Vapor
 import HTTP
 import TurnstileCSH
 import Foundation
-import VaporSQLite
+import PostgreSQL
+import VaporPostgreSQL
 import Leaf
 
 enum RequestError: Error {
@@ -18,61 +19,63 @@ func badRequest(reason: String) -> Response {
 
 func runServer() throws {
     let drop = Droplet(preparations: [Link.self, Visit.self],
-                       providers: [VaporSQLite.Provider.self])
+                       providers: [VaporPostgreSQL.Provider.self])
 
     let linkController = LinkController(droplet: drop)
-    drop.resource("links", linkController)
-    
     let cshMiddleware = try CSHMiddleware(droplet: drop)
     
     drop.get(String.self) { request, code in
         guard let link = try Link.forCode(code) else {
-            return try Response(status: .notFound, json: JSON([
-                "reason": .string("Could not find a link for \(code). " +
-                    "Check the code and try again.")
-            ]))
+            throw Abort.notFound
         }
         return try linkController.show(request: request, item: link)
     }
     
     drop.get(String.self, "q") { request, code in
         guard let link = try Link.forCode(code) else {
-            return try Response(status: .notFound, json: JSON([
-                "reason": .string("Could not find a link for \(code). " +
-                    "Check the code and try again.")
-            ]))
+            throw Abort.notFound
+        }
+        return try drop.view.make("query", [
+            "link": link.makeNode()
+        ])
+    }
+    drop.get(String.self, "visits") { request, code in
+        guard let link = try Link.forCode(code) else {
+            throw Abort.notFound
         }
         let visits: [Node] = try link.visits().all().map { visit in
             return [
                 "timestamp": .number(Node.Number(visit.timestamp.timeIntervalSince1970)),
             ]
         }
-        let visitsJSON = try JSON(visits.makeNode()).serialize(prettyPrint: true)
-        return try drop.view.make("query", [
-            "link": link.makeNode(),
-            "visits": .bytes(visitsJSON)
-        ])
+        return try Response(body: JSON([
+            "visits": visits.makeNode()
+        ]))
     }
     
     drop.group(cshMiddleware.authMiddleware, cshMiddleware) { group in
         group.delete(String.self) { request, code in
             guard let link = try Link.forCode(code) else {
-                return badRequest(reason: "no url found for '\(code)'")
+                throw Abort.notFound
             }
             return try linkController.destroy(request: request, item: link)
         }
         
         group.post(String.self) { request, code in
-            guard let link = try Link.forCode(code) else {
-                return badRequest(reason: "no url found for '\(code)'")
+            do {
+                guard let link = try Link.forCode(code) else {
+                    throw Abort.notFound
+                }
+                return try linkController.update(request: request, item: link)
+            } catch URLError.cannotLinkToMe {
+                return badRequest(reason: "You cannot link to a csh.link URL.")
             }
-            return try linkController.update(request: request, item: link)
         }
         
         group.post { request in
             do {
                 guard let json = request.json else {
-                    throw RequestError.noData
+                    throw Abort.badRequest
                 }
                 
                 let user = try request.auth.user() as! CSHAccount
@@ -82,7 +85,11 @@ func runServer() throws {
                 return try linkController.create(url: url, creator: user, code: code)
             } catch LinkError.invalidShortCode {
                 return badRequest(reason: "Custom short codes can only contain up to 128 alphanumeric characters, underscores, or dashes.")
-            } catch {
+            } catch URLError.cannotLinkToMe {
+                return badRequest(reason: "You cannot link to a csh.link URL.")
+            } catch is LinkError {
+                return badRequest(reason: "You must provide a valid URL and, optionally, a code.")
+            } catch is URLError {
                 return badRequest(reason: "You must provide a valid URL and, optionally, a code.")
             }
         }

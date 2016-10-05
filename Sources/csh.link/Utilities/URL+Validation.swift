@@ -7,6 +7,7 @@ import Foundation
 enum URLError: Error {
     case notAURL
     case noHost
+    case cannotLinkToMe
 }
 
 extension URL {
@@ -26,6 +27,9 @@ extension URL {
         }
         guard url.host != nil else {
             throw URLError.noHost
+        }
+        guard url.host != "csh.link" else {
+            throw URLError.cannotLinkToMe
         }
         self = url
     }

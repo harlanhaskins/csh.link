@@ -5,8 +5,9 @@ function renderLink(link, animated) {
     var html = template({link: link});
     if (animated) {
         $(html).prependTo('#link-container')
-               .css("display", "none")
-               .slideDown({
+               .css({
+                   display: 'none'
+               }).slideDown({
                    easing: 'easeOutCubic'
                });
     } else {
@@ -43,7 +44,8 @@ function deleteLink(code) {
         url: '/' + code,
         type: 'DELETE'
     }).done(function(data) {
-        $('#link-entry-' + code).slideUp({
+        $('#link-entry-' + code)
+        .slideUp({
             easing: 'easeOutCubic'
         }).done(function (elem) {
             elem.remove();

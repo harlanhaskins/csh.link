@@ -40,11 +40,9 @@ struct Link: Model {
             "url": .string(url.absoluteString),
             "active": .bool(active),
             "code": .string(code),
+            "id": id ?? .null,
             "created_at": .number(Node.Number(created.timeIntervalSince1970))
         ]
-        if let id = id {
-            data["id"] = id
-        }
         if let creator = creator {
             data["creator"] = .string(creator)
         }
@@ -67,7 +65,7 @@ struct Link: Model {
             link.id()
             link.string("url")
             link.string("code")
-            link.string("creator", length: 24, optional: false)
+            link.string("creator", length: 36, optional: false)
             link.bool("active")
             link.double("created_at")
         }
