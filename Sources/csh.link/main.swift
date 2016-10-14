@@ -17,9 +17,13 @@ func badRequest(reason: String) -> Response {
     ]))
 }
 
+
+
 func runServer() throws {
-    let drop = Droplet(preparations: [Link.self, Visit.self],
-                       providers: [VaporPostgreSQL.Provider.self])
+    let drop = Droplet()
+    try drop.addProvider(VaporPostgreSQL.Provider.self)
+    drop.preparations.append(Link.self)
+    drop.preparations.append(Visit.self)
 
     let linkController = LinkController(droplet: drop)
     let cshMiddleware = try CSHMiddleware(droplet: drop)
@@ -39,6 +43,7 @@ func runServer() throws {
             "link": link.makeNode()
         ])
     }
+    
     drop.get(String.self, "visits") { request, code in
         guard let link = try Link.forCode(code) else {
             throw Abort.notFound

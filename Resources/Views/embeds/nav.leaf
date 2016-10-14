@@ -21,7 +21,7 @@
                             <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a href="https://profiles.csh.rit.edu/user/harlan"><span class="glyphicon glyphicon-user"></span> Profiles</a></li>
+                            <li><a href="https://profiles.csh.rit.edu/user/#(user.username)"><span class="glyphicon glyphicon-user"></span> Profiles</a></li>
                             <li role="separator" class="divider"></li>
                             <li><a href="https://members.csh.rit.edu/"><span class="glyphicon glyphicon-globe"></span> Members Portal</a></li>
                             <li><a href="https://github.com/harlanhaskins/csh.link/issues"><span class="glyphicon glyphicon-exclamation-sign"></span> Report an Issue</a></li>

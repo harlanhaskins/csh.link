@@ -33,29 +33,29 @@
     <div id='link-container' class='slide-fade'>
     </div>
     <script id='link-template' type='x-handlebars-template'>
-        <div class='row' id='link-entry-{{link.code}}'>
-            <div class='col-lg-3'>
-            </div>
-            <div class='col-lg-6'>
-                <div class='panel panel-default'>
-                    <div class='panel-heading'>
-                        <input type='textarea' id='short-link-{{link.code}}' class='form-control' readonly='readonly' value='https://csh.link/{{link.code}}' />
-                    </div>
-                    <div class='panel-body'>
-                        <div class='input-group'>
-                            <input type='textarea' id='url-input-{{link.code}}' class='form-control' value='{{link.url}}' />
-                            <span class="input-group-btn">
-                                <button type='button' class='btn btn-default' onclick='updateLink("{{link.code}}")'>Update</button>
-                                <button type='button' class='btn btn-danger' onclick='deleteLink("{{link.code}}")'>Delete</button>
-                            </span>
-                        </div>
-                    </div>
-                    <div class='panel-footer'>
-                        Created {{link.created_at}} • Visits: {{link.visits}}
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class='row' id='link-entry-{{link.code}}'>
+    <div class='col-lg-3'>
+    </div>
+    <div class='col-lg-6'>
+    <div class='panel panel-default'>
+    <div class='panel-heading'>
+    <input type='textarea' id='short-link-{{link.code}}' class='form-control' readonly='readonly' onclick='select()' value='https://csh.link/{{link.code}}' />
+    </div>
+    <div class='panel-body'>
+    <div class='input-group'>
+    <input type='textarea' id='url-input-{{link.code}}' class='form-control' value='{{link.url}}' />
+    <span class="input-group-btn">
+    <button type='button' class='btn btn-default' onclick='updateLink("{{link.code}}")'>Update</button>
+    <button type='button' class='btn btn-danger' onclick='deleteLink("{{link.code}}")'>Delete</button>
+    </span>
+    </div>
+    </div>
+    <div class='panel-footer'>
+    Created {{link.created_at}} • Visits: {{link.visits}}
+    </div>
+    </div>
+    </div>
+    </div>
     </script>
 </div>
 

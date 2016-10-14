@@ -1,8 +1,5 @@
 import Foundation
-
-#if os(macOS)
-    typealias RegularExpression = NSRegularExpression
-#endif
+import Darwin
 
 enum URLError: Error {
     case notAURL
@@ -15,7 +12,7 @@ extension URL {
         var string = string
         
         // HACK: Add scheme if none is provided
-        let schemeRegex = try! RegularExpression(pattern: "\\w+://", options: [])
+        let schemeRegex = try! NSRegularExpression(pattern: "\\w+://", options: [])
         if schemeRegex.numberOfMatches(in: string,
                                        options: [],
                                        range: NSRange(location: 0, length: string.characters.count)) == 0 {
