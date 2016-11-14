@@ -25,7 +25,7 @@ extension URL {
         guard url.host != nil else {
             throw URLError.noHost
         }
-        guard url.host != "csh.link" else {
+        guard url.host != "csh.link" || url.pathComponents.isEmpty else {
             throw URLError.cannotLinkToMe
         }
         self = url
